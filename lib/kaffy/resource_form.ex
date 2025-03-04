@@ -117,13 +117,13 @@ defmodule Kaffy.ResourceForm do
       :id ->
         case Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
-          false -> text_or_assoc(conn, schema, form, field, opts)
+          false -> text_or_assoc(conn, schema, form, field, opts, type)
         end
 
       :binary_id ->
         case Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
-          false -> text_or_assoc(conn, schema, form, field, opts)
+          false -> text_or_assoc(conn, schema, form, field, opts, type)
         end
 
       :string ->
@@ -315,7 +315,7 @@ defmodule Kaffy.ResourceForm do
     ]
   end
 
-  defp text_or_assoc(conn, schema, form, field, opts) do
+  defp text_or_assoc(conn, schema, form, field, opts, type) do
     actual_assoc =
       Enum.filter(Kaffy.ResourceSchema.associations(schema), fn a ->
         Kaffy.ResourceSchema.association(schema, a).owner_key == field
@@ -340,11 +340,21 @@ defmodule Kaffy.ResourceForm do
 
             content_tag :div, class: "input-group" do
               [
-                number_input(form, field,
-                  class: "form-control",
-                  id: field,
-                  aria_describedby: field
-                ),
+                case type do
+                  :id ->
+                    number_input(form, field,
+                      class: "form-control",
+                      id: field,
+                      aria_describedby: field
+                    )
+
+                  _ ->
+                    text_input(form, field,
+                      class: "form-control",
+                      id: field,
+                      aria_describedby: field
+                    )
+                end,
                 content_tag :div, class: "input-group-append" do
                   content_tag :span, class: "input-group-text", id: field do
                     link(content_tag(:i, "", class: "fas fa-search"),
